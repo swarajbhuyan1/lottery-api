@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SelectSlotWinner;
 use App\Models\Slot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,31 +20,39 @@ class SlotController extends Controller
 
         return DB::transaction(function () use ($request) {
             $user = $request->user();
-            $slot = Slot::find($request->slot_id);
+            $slot = Slot::lockForUpdate()->find($request->slot_id); // Lock the slot row to prevent race conditions
 
-            if($user->wallet_balance < $slot->amount) {
+            if ($user->wallet_balance < $slot->amount) {
                 abort(400, 'Insufficient balance');
             }
 
-            // Deduct amount
+            // Deduct amount from user wallet
             $user->wallet_balance -= $slot->amount;
             $user->save();
 
-            // Create ticket
+            // Create a ticket for the user
             $ticket = $slot->tickets()->create([
                 'user_id' => $user->id,
                 'ticket_number' => Str::uuid()
             ]);
 
-            // Check if slot is full
+            // Refresh slot to get updated ticket count
+            $slot->refresh();
+
+            // Check if the slot is now full AFTER inserting the ticket
             if ($slot->isFull()) {
+                $slot->update(['status' => 'full']);
                 $this->createNewSlot($slot);
                 $this->scheduleWinnerSelection($slot);
             }
 
-            return response()->json($ticket);
+            return response()->json([
+                'message' => 'Successfully joined the slot.',
+                'ticket' => $ticket
+            ]);
         });
     }
+
 
     private function createNewSlot(Slot $originalSlot)
     {

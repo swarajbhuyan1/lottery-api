@@ -6,6 +6,7 @@ use App\Models\Slot;
 use App\Models\Winner;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 
 class SelectSlotWinner implements ShouldQueue
 {
@@ -16,7 +17,7 @@ class SelectSlotWinner implements ShouldQueue
      */
     public function __construct(Slot $slot)
     {
-        $this->slot = $slot;
+//        $this->slot = $slot;
     }
 
     /**
@@ -24,6 +25,13 @@ class SelectSlotWinner implements ShouldQueue
      */
     public function handle(): void
     {
+        $slot = Slot::find($this->slot->id);
+
+        if (!$slot) {
+            Log::error("Slot not found for ID: {$this->slot->id}");
+            return;
+        }
+
         // Select random winner
         $winnerTicket = $this->slot->tickets()->inRandomOrder()->first();
 

@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Slot extends Model
 {
+    protected $fillable = [
+        'amount', 'member_limit'
+    ];
     protected $casts = [
             'start_time' => 'datetime',
             'end_time' => 'datetime'
