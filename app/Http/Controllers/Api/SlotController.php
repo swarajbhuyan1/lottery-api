@@ -43,6 +43,7 @@ class SlotController extends Controller
                 ], 400);
             }
 
+
             // 3. Check balance after status validation
             if ($user->wallet_balance < $slot->amount) {
                 return response()->json([
@@ -83,7 +84,9 @@ class SlotController extends Controller
         $newSlot = Slot::create([
             'amount' => $originalSlot->amount,
             'member_limit' => $originalSlot->member_limit,
+            'winning_percentage' => $originalSlot->winning_percentage,
             'start_time' => now(),
+            'end_time' => now()->addDays(1),
             'status' => 'active'
         ]);
     }
@@ -99,7 +102,7 @@ class SlotController extends Controller
     {
         // Schedule auto-cancel with 1 day delay
         AutoCancelSlot::dispatch($slot)
-            ->delay(now()->addHours(1))
+            ->delay(now()->addMinutes(1))
             ->onQueue('slot_winners');
 
     }

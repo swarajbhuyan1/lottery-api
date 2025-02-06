@@ -42,6 +42,15 @@ class AutoCancelSlot implements ShouldQueue
                 'end_time' => now()
             ]);
 
+           Slot::create([
+                'amount' => $slot->amount,
+                'member_limit' => $slot->member_limit,
+                'winning_percentage' => $slot->winning_percentage,
+                'start_time' => now(),
+                'end_time' => now()->addDays(1),
+                'status' => 'active'
+            ]);
+
             Log::info("Slot {$slot->id} canceled. Refunded {$slot->tickets->count()} users.");
         }
     }

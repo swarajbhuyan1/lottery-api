@@ -96,6 +96,7 @@ class SelectSlotWinner implements ShouldQueue
             'slot_id' => $slot->id,
             'user_id' => $winnerTicket->user_id,
             'ticket_id' => $winnerTicket->id,
+            'is_winner' => 1,
             'winning_amount' => $winningAmount
         ]);
 
@@ -111,7 +112,8 @@ class SelectSlotWinner implements ShouldQueue
 
     private function calculateWinningAmount(Slot $slot)
     {
-        return $slot->amount * $slot->member_limit * 0.8;
+//        return $slot->amount * $slot->member_limit * 0.8;
+        return $slot->amount * $slot->member_limit * ($slot->winning_percentage/100);
 
     }
 }

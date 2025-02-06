@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Slot extends Model
 {
     protected $fillable = [
-        'amount', 'member_limit', 'status', 'end_time'
+        'amount', 'member_limit', 'status', 'end_time','winning_percentage'
     ];
     protected $casts = [
             'start_time' => 'datetime',
