@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('code', 6);
             $table->enum('method', ['email', 'mobile']);
+            $table->string('referral_code')->unique()->nullable();
             $table->timestamp('expires_at');
             $table->timestamps();
         });

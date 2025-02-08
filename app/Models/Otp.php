@@ -10,7 +10,7 @@ class Otp extends Model
     use HasFactory;
 
     protected $fillable = ['email','name',
-        'mobile', 'code', 'method', 'expires_at'];
+        'mobile', 'code', 'method', 'expires_at','referral_code'];
 
     public function user()
     {

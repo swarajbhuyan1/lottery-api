@@ -60,4 +60,14 @@ class User extends Authenticatable
             ->orWhere('mobile', $identifier)
             ->first();
     }
+
+    public function referrals()
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+
+    public function referredBy()
+    {
+        return $this->hasOne(Referral::class, 'referee_id');
+    }
 }

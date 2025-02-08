@@ -36,22 +36,23 @@ class AuthController extends Controller
                     'email' => $request->email,
                     'code' => $otp,
                     'method' => $request->otp_method,
+                    'referral_code' => $request->referral_code,
                     'expires_at' => now()->addMinutes(10)
                 ]
             );
 
             // Handle referral
-            if ($request->referral_code) {
-                $referrer = User::where('referral_code', $request->referral_code)->first();
-                if ($referrer) {
-                    Referral::create([
-                        'referrer_id' => $referrer->id,
-                        'referee_id' => null, // Will update after verification
-                        'commission' => config('referral.commission'),
-                        'status' => 'pending'
-                    ]);
-                }
-            }
+//            if ($request->referral_code) {
+//                $referrer = User::where('referral_code', $request->referral_code)->first();
+//                if ($referrer) {
+//                    Referral::create([
+//                        'referrer_id' => $referrer->id,
+//                        'referee_id' => null, // Will update after verification
+//                        'commission' => config('referral.commission'),
+//                        'status' => 'pending'
+//                    ]);
+//                }
+//            }
 
             return response()->json(['message' => 'OTP sent successfully']);
 
@@ -75,6 +76,7 @@ class AuthController extends Controller
         $otp = Otp::where('code', $request->code)
             ->where('method', $request->method)
             ->where('mobile', $request->mobile)
+            ->where('referral_code', $request->referral_code)
             ->where('expires_at', '>', now())
             ->first();
 
@@ -92,10 +94,25 @@ class AuthController extends Controller
         ]);
 
         // Update referral
+//        if ($request->referral_code) {
+//            Referral::where('referral_code', $request->referral_code)
+//                ->whereNull('referee_id')
+//                ->update([
+//                    'referee_id' => $user->id,
+//                    'commission' => 200,
+//                    'status' => 'pending'
+//                ]);
+//        }
         if ($request->referral_code) {
-            Referral::where('referral_code', $request->referral_code)
-                ->whereNull('referee_id')
-                ->update(['referee_id' => $user->id]);
+            $referrer = User::where('referral_code', $request->referral_code)->first();
+            if ($referrer) {
+                Referral::create([
+                    'referrer_id' => $referrer->id,
+                    'referee_id' => $user->id,
+                    'commission' => 200,
+                    'status' => 'pending'
+                ]);
+            }
         }
 
         // Delete OTP
