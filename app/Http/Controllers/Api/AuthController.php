@@ -120,7 +120,16 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'User registered successfully',
-            'token' => $user->createToken('authToken')->plainTextToken
+            'token' => $user->createToken('authToken')->plainTextToken,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'mobile' => $user->mobile,
+                'wallet_balance' => $user->wallet_balance,
+                'referral_code' => $user->referral_code,
+                'is_admin' => $user->is_admin
+            ]
         ]);
     }
 
@@ -155,6 +164,7 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'mobile' => $user->mobile,
                     'wallet_balance' => $user->wallet_balance,
+                    'referral_code' => $user->referral_code,
                     'is_admin' => $user->is_admin
                 ]
             ]);

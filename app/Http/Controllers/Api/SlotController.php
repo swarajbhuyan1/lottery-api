@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\AutoCancelSlot;
 use App\Jobs\SelectSlotWinner;
 use App\Models\Slot;
+use App\Models\Winner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -106,4 +107,47 @@ class SlotController extends Controller
             ->onQueue('slot_winners');
 
     }
+
+    public function participants($slotId)
+    {
+        $slot = Slot::find($slotId);
+
+        // Check if the slot exists
+        if (!$slot) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Slot not found'
+            ], 404);
+        }
+
+        $participants = $slot->tickets()
+            ->with('user:id,name')
+            ->get(['id', 'ticket_number', 'user_id', 'created_at'])
+            ->map(function ($ticket) {
+                // Check if the ticket is in the winners table
+                $winner = Winner::where('ticket_id', $ticket->id)->first();
+
+                return [
+                    'name' => $ticket->user->name,
+                    'ticket_number' => $ticket->ticket_number,
+                    'is_winner' => $winner ? 'yes' : 'no',  // If winner exists, it's a winner
+                    'winning_amount' => $winner ? $winner->winning_amount : 0, // Show winning amount if exists
+                    'joined_at' => $ticket->created_at->format('Y-m-d H:i:s')
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'slot_id' => $slot->id,
+            'participants_limit' => $slot->member_limit,
+            'status' => $slot->status,
+            'amount' => $slot->amount,
+            'start_time' => $slot->start_time,
+            'end_time' => $slot->end_time,
+            'winning_percentage' => $slot->winning_percentage,
+            'total_participants' => $participants->count(),
+            'participants' => $participants
+        ]);
+    }
+
 }

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Slot extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'amount', 'member_limit', 'status', 'end_time','winning_percentage'
     ];
@@ -13,6 +15,7 @@ class Slot extends Model
             'start_time' => 'datetime',
             'end_time' => 'datetime'
         ];
+    protected $dates = ['deleted_at'];
 
         public function tickets() {
             return $this->hasMany(Ticket::class);
