@@ -17,12 +17,14 @@ class AdminSlotController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'category_id' => 'required|exists:slot_categories,id',
             'amount' => 'required|numeric|min:1000',
             'member_limit' => 'required|integer|min:2',
             'winning_percentage' => 'required|numeric|between:1,100',
         ]);
 
         $slot = Slot::create([
+            'category_id' => $request->category_id,
             'amount' => $request->amount,
             'member_limit' => $request->member_limit,
             'winning_percentage' => $request->winning_percentage,

@@ -9,7 +9,7 @@ class Slot extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-        'amount', 'member_limit', 'status', 'end_time','winning_percentage'
+        'amount', 'member_limit', 'status', 'end_time','winning_percentage','category_id'
     ];
     protected $casts = [
             'start_time' => 'datetime',
@@ -48,6 +48,11 @@ class Slot extends Model
 
         // Mark slot as completed
         $this->update(['status' => 'completed']);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(SlotCategory::class, 'category_id');
     }
 
 }

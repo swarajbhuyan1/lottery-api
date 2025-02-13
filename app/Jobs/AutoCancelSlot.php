@@ -43,6 +43,7 @@ class AutoCancelSlot implements ShouldQueue
             ]);
 
            Slot::create([
+                'category_id' => $slot->category_id,
                 'amount' => $slot->amount,
                 'member_limit' => $slot->member_limit,
                 'winning_percentage' => $slot->winning_percentage,

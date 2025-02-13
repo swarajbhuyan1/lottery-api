@@ -83,6 +83,7 @@ class SlotController extends Controller
     private function createNewSlot(Slot $originalSlot)
     {
         $newSlot = Slot::create([
+            'category_id' => $originalSlot->category_id,
             'amount' => $originalSlot->amount,
             'member_limit' => $originalSlot->member_limit,
             'winning_percentage' => $originalSlot->winning_percentage,
@@ -103,7 +104,7 @@ class SlotController extends Controller
     {
         // Schedule auto-cancel with 1 day delay
         AutoCancelSlot::dispatch($slot)
-            ->delay(now()->addMinutes(1))
+            ->delay(now()->addHours(1))
             ->onQueue('slot_winners');
 
     }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\SlotCategoryController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -47,6 +48,11 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         Route::post('/{id}/restore', [AdminSlotController::class, 'restore']);
         Route::delete('/{id}/force-delete', [AdminSlotController::class, 'forceDelete']);
     });
+    Route::prefix('slot-categories')->group(function () {
+        Route::get('/', [SlotCategoryController::class, 'index']);
+        Route::post('/', [SlotCategoryController::class, 'store']);
+    });
+
     // User api
     Route::prefix('users')->group(function () {
         Route::get('/', [AdminUserController::class, 'index']);

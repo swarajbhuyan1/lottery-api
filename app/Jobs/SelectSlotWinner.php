@@ -80,7 +80,124 @@ class SelectSlotWinner implements ShouldQueue
             ->onQueue('slot_winners');
     }
 
+//    private function handleDeclarationStage(Slot $slot)
+//    {
+//        if ($slot->status !== 'processing') {
+//            Log::error("Declaration stage: Invalid slot state", ['status' => $slot->status]);
+//            return;
+//        }
+//
+//        // Select winner
+//        $winnerTicket = $slot->tickets()->inRandomOrder()->firstOrFail();
+//        $winningAmount = $this->calculateWinningAmount($slot);
+//
+//        // Create winner record
+//        Winner::create([
+//            'slot_id' => $slot->id,
+//            'user_id' => $winnerTicket->user_id,
+//            'ticket_id' => $winnerTicket->id,
+//            'is_winner' => 1,
+//            'winning_amount' => $winningAmount
+//        ]);
+//
+//        // Update winner's wallet balance atomically
+//        $winnerTicket->user->increment('wallet_balance', $winningAmount);
+//
+//        // Finalize slot
+//        $slot->update([
+//            'status' => 'completed',
+//            'end_time' => now()
+//        ]);
+//    }
     private function handleDeclarationStage(Slot $slot)
+    {
+        if ($slot->status !== 'processing') {
+            Log::error("Declaration stage: Invalid slot state", ['status' => $slot->status]);
+            return;
+        }
+
+        $participants = $slot->tickets()->get();
+        $totalAmount = $slot->amount * $slot->member_limit;
+
+        if ($slot->category_id == 1) {
+            $this->distributeCategoryOnePrizes($slot, $participants, $totalAmount);
+        } elseif ($slot->category_id == 2) {
+            $this->distributeCategoryTwoPrizes($slot, $participants, $totalAmount);
+        }
+
+        $slot->update(['status' => 'completed', 'end_time' => now()]);
+    }
+//    private function distributeCategoryOnePrizes(Slot $slot, $participants, $totalAmount)
+//    {
+//        $multipliers = [3, 1.5, 1];
+//        $fixedAmount = $slot->amount/2;
+//
+//        $winners = $participants->shuffle()->take($slot->member_limit);
+//        $rank = 1;
+//
+//        foreach ($winners as $winner) {
+//            $prize = 0;
+//            if ($rank <= 3) {
+//                $prize = $totalAmount * ($multipliers[$rank - 1] / 5.5);
+//            } elseif ($rank >= 4 && $rank <= 10) {
+//                $prize = $fixedAmount;
+//            }
+//
+//            Winner::create([
+//                'user_id' => $winner->user_id,
+//                'slot_id' => $slot->id,
+//                'ticket_id' => $winner->id,
+//                'winning_amount' => $prize
+//            ]);
+//
+//            $winner->user->increment('wallet_balance', $prize);
+//            $rank++;
+//        }
+//    }
+
+    private function distributeCategoryOnePrizes(Slot $slot, $participants, $totalAmount)
+    {
+        $multipliers = [3, 1.5, 1]; // Top 3 prize multipliers
+        $memberLimit = $slot->member_limit; // Dynamic participant count
+        $commission = 1000; // Set your commission (can be 500, 1000, etc.)
+        $fixedAmount = $slot->amount / 2; // Fixed prize for remaining winners
+
+        // Calculate dynamic divisor
+        $sumMultipliers = array_sum($multipliers); // 3 + 1.5 + 1 = 5.5
+        $extraCost = ($memberLimit - 3) * $fixedAmount + $commission;
+        $dynamicDivisor = $sumMultipliers + ($extraCost / $totalAmount);
+
+        // Shuffle winners and pick top ones
+        $winners = $participants->shuffle()->take($memberLimit);
+        $rank = 1;
+
+        foreach ($winners as $winner) {
+            $prize = 0;
+
+            if ($rank <= 3) {
+                // Prize based on multiplier
+                $prize = $totalAmount * ($multipliers[$rank - 1] / $dynamicDivisor);
+            } elseif ($rank > 3) {
+                // Fixed prize for remaining winners
+                $prize = $fixedAmount;
+            }
+
+            // Create winner record
+            Winner::create([
+                'user_id' => $winner->user_id,
+                'slot_id' => $slot->id,
+                'ticket_id' => $winner->id,
+                'winning_amount' => $prize
+            ]);
+
+            // Add to user's wallet
+            $winner->user->increment('wallet_balance', $prize);
+            $rank++;
+        }
+    }
+
+
+    private function distributeCategoryTwoPrizes(Slot $slot)
     {
         if ($slot->status !== 'processing') {
             Log::error("Declaration stage: Invalid slot state", ['status' => $slot->status]);

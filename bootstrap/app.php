@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Add your middleware here
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'auth' => \App\Http\Middleware\Authenticate::class,
+//            'auth' => \App\Http\Middleware\Authenticate::class,
         ]);
 
         // Global Middleware (if needed)
