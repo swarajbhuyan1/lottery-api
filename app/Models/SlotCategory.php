@@ -9,7 +9,7 @@ class SlotCategory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'image'];
+    protected $fillable = ['name', 'slug', 'image','multipliers'];
 
     public function slots()
     {
