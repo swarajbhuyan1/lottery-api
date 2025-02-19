@@ -51,6 +51,11 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::prefix('slot-categories')->group(function () {
         Route::get('/', [SlotCategoryController::class, 'index']);
         Route::post('/', [SlotCategoryController::class, 'store']);
+        Route::get('/{id}', [SlotCategoryController::class, 'show']);
+        Route::put('/{id}', [SlotCategoryController::class, 'update']);
+        Route::delete('/{id}', [SlotCategoryController::class, 'destroy']);
+        Route::patch('/restore/{id}', [SlotCategoryController::class, 'restore']);
+        Route::delete('/force-delete/{id}', [SlotCategoryController::class, 'forceDelete']);
     });
 
     // User api
