@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SlotCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SlotCategoryController extends Controller
 {
@@ -33,23 +34,45 @@ class SlotCategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|unique:slot_categories',
-            'image' => 'nullable|image|max:2048', // This rule validates the uploaded image
+            'image' => 'nullable|string', // Accepts the Base64 encoded image string
         ]);
 
         $imagePath = null;
-        if ($request->hasFile('image')) {
-            // Store the image in the 'slot-categories' folder in the public disk
-            $imagePath = $request->file('image')->store('slot-categories', 'public');
+        if ($request->has('image')) {
+            // Decode the base64 string and create the image file
+            $imageData = $request->input('image');
+
+            // Remove the base64 image prefix, like "data:image/jpeg;base64,"
+            if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                $imageData = base64_decode($imageData);
+                $extension = $matches[1]; // Get the image extension (jpeg, png, etc.)
+
+                // Generate a unique name for the image
+                $imageName = 'slot_category_' . time() . '.' . $extension;
+
+                // Store the image in the 'slot-categories' folder in the public disk
+                // Use the correct file name and store it
+                Storage::disk('public')->put('slot-categories/' . $imageName, $imageData);
+
+                // Set the correct image path to be used in the database
+                $imagePath = 'storage/slot-categories/' . $imageName;
+            }
         }
 
+        // Create the SlotCategory entry
         $category = SlotCategory::create([
             'name' => $request->name,
-            'image' => $imagePath ? 'storage/' . $imagePath : null,
-            'status' => $request->status, // Make sure status is taken from request
+            'image' => $imagePath ? asset($imagePath) : null, // Return the full URL link
+            'status' => $request->status, // Ensure status is passed
+            'multipliers' => $request->multipliers, // Ensure status is passed
         ]);
 
         return response()->json($category, 201);
     }
+
+
+
 
 
     public function show($id)
